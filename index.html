@@ -269,8 +269,12 @@ async function unlock(st, p, pw) {
 }
 
 const configured = () => !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
+// Entry word. Keeps casual visitors out; it is not a security boundary (the answers' own passwords are).
+const GATE_HASH = "3f24661758ac1f3d6c14e5a4c36e4dd27254bdba71a01c6adfd9c548ad56ca06";
+const gateOk = () => lsGet("bwisi:gate") === GATE_HASH || S.gateOk;
 
 function init() {
+  if (!gateOk()) { S.view = "gate"; return render(); }
   if (!configured()) { S.view = "setup"; return render(); }
   const saved = lsGet("bwisi:me");
   if (saved && PEOPLE[saved]) { S.me = saved; S.view = "home"; } else S.view = "who";
@@ -303,7 +307,7 @@ function go(view) { S.err = ""; S.confirm = null; S.fieldErr = {}; S.view = view
 
 /* ---------- Render ---------- */
 function render() {
-  ({ loading: () => {}, setup: renderSetup, who: renderWho, home: renderHome, form: renderForm, review: renderReview, password: renderPassword,
+  ({ loading: () => {}, gate: renderGate, setup: renderSetup, who: renderWho, home: renderHome, form: renderForm, review: renderReview, password: renderPassword,
      saved: renderSaved, unlock: renderUnlock, choose: renderChoose, together: renderTogether, compare: renderCompare, decide: renderDecide })[S.view]();
 }
 const confirmHTML = () => S.confirm ? `<div class="confirm" role="alertdialog" aria-label="Confirm"><p>${esc(S.confirm.text)}</p><div class="row"><button class="btn danger" id="c-yes">${esc(S.confirm.label)}</button><button class="btn ghost" id="c-no">Cancel</button></div></div>` : "";
@@ -324,6 +328,20 @@ function bindOlder() {
     catch (e) { S.err = explain(e); }
     render();
   });
+}
+
+function renderGate() {
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">Private</span><h1>Before We Invite Someone In</h1>
+    <p class="muted">Type the word you were given to continue.</p></div>
+    <form id="gateform" class="stack" novalidate>
+      <div class="field"><label for="gate-word">Word</label><input type="password" id="gate-word" autocomplete="off" autocapitalize="none" spellcheck="false">${errHTML(S.err, "gate-err")}</div>
+      <div class="row"><button type="submit" class="btn" id="gate-go">Continue</button></div></form></div>`;
+  $("gateform").onsubmit = async ev => {
+    ev.preventDefault();
+    const h = await sha256hex("bwisi-gate:" + $("gate-word").value.trim().toLowerCase());
+    if (h !== GATE_HASH) { S.err = "That's not the word. Check it and try again."; return render(); }
+    S.err = ""; S.gateOk = true; lsSet("bwisi:gate", GATE_HASH); init();
+  };
 }
 
 function renderSetup() {

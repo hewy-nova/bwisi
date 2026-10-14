@@ -14,6 +14,7 @@ const MOCK_HOST = "bwisi-test.supabase.co";
 const MOCK_URL = `https://${MOCK_HOST}`;
 const ANON = "test-anon-key";
 const POLL_MS = 1500;
+const GATE_HASH = crypto.createHash("sha256").update("bwisi-gate:slugs").digest("hex");
 const ALLOWED_HOSTS = new Set([MOCK_HOST, "fonts.googleapis.com", "fonts.gstatic.com"]);
 
 /* ---------------- Reporting ---------------- */
@@ -120,7 +121,7 @@ function handleSupabase(route) {
 /* ---------------- Browser helpers ---------------- */
 const requests = [], pageErrors = [];
 let BASE;
-async function newPhone(browser, label, cfg, colorScheme = "light") {
+async function newPhone(browser, label, cfg, colorScheme = "light", opts = {}) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme, locale: "en-US" });
   ctx.on("request", r => requests.push({ label, url: r.url() }));
   await ctx.route("**/*", route => {
@@ -134,6 +135,7 @@ async function newPhone(browser, label, cfg, colorScheme = "light") {
     if (u.host === "fonts.gstatic.com") return route.fulfill({ status: 200, body: "" });
     return route.abort();
   });
+  if (!opts.noGate) await ctx.addInitScript(h => { try { localStorage.setItem("bwisi:gate", h); } catch {} }, GATE_HASH);
   const page = await ctx.newPage();
   page.on("pageerror", e => pageErrors.push(`${label}: ${e.message}`));
   page.on("dialog", d => { pageErrors.push(`${label}: native dialog used (${d.type()})`); d.dismiss(); });
@@ -450,6 +452,20 @@ const LOU = { why1: "LOU-why1 quiet harbour lantern", why2: 4, why3: "LOU-why3 p
       assert(pageErrors.length === errsBefore, pageErrors.slice(errsBefore).join("; "));
       assert(!requests.some(r => r.label === "Unconfigured phone" && r.url.includes(MOCK_HOST)), "unconfigured page called Supabase");
       await blank.ctx.close();
+    });
+
+    await item("13. Entry word gate: wrong word refused, \"slugs\" lets you in and is remembered", async () => {
+      const g = await newPhone(browser, "New visitor", CFG, "light", { noGate: true });
+      await g.page.locator("#gate-word").waitFor();
+      assert(!(await g.page.locator("#pick-matt").count()), "content visible before the word");
+      await noOverflow(g.page, "gate");
+      await g.page.fill("#gate-word", "snails"); await g.page.click("#gate-go");
+      await g.page.locator("#gate-err").waitFor();
+      await g.page.fill("#gate-word", "slugs"); await g.page.click("#gate-go");
+      await g.page.locator("#pick-matt").waitFor({ timeout: 5000 });
+      await g.page.reload();
+      await g.page.locator("#pick-matt").waitFor({ timeout: 5000 });
+      await g.ctx.close();
     });
 
     await item("No uncaught page errors or native dialogs on any phone", async () => {
