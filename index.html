@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://*.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>Before We Invite Someone In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: single phone column; two stages; answers encrypted with each person's password; one section per screen */
+:root {
+  --bg: #f7f5f8; --surface: #ffffff; --ink: #221a29; --muted: #6d6375; --line: #e2dce6;
+  --accent: #7c2a4c; --accent-soft: #f2e4ea;
+  --yes: #2f6b4a; --yes-soft: #e1efe6; --maybe: #8a6416; --maybe-soft: #f5ecd6; --no: #9b2d2d; --no-soft: #f6e0e0;
+  --display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #16121a; --surface: #201a26; --ink: #eee8f2; --muted: #a79cb0; --line: #352d3d; --accent: #e08aab; --accent-soft: #3a2230;
+  --yes: #7cc79c; --yes-soft: #1c3127; --maybe: #e2bd6a; --maybe-soft: #3a2f17; --no: #ec8c8c; --no-soft: #3b1f22; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #16121a; --surface: #201a26; --ink: #eee8f2; --muted: #a79cb0; --line: #352d3d; --accent: #e08aab; --accent-soft: #3a2230;
+  --yes: #7cc79c; --yes-soft: #1c3127; --maybe: #e2bd6a; --maybe-soft: #3a2f17; --no: #ec8c8c; --no-soft: #3b1f22; color-scheme: dark }
+
+* { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--bg); }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; min-height: 100vh; overflow-wrap: break-word; }
+.wrap { max-width: 620px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: 2.3rem; line-height: 1.05; } h2 { font-size: 1.8rem; line-height: 1.1; } h3 { font-size: 1.3rem; }
+.eyebrow { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+p { margin: 0; } .muted { color: var(--muted); } .small { font-size: .9rem; }
+code { font-size: .9em; background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
+.stack { display: flex; flex-direction: column; gap: 16px; } .stack-lg { display: flex; flex-direction: column; gap: 28px; }
+.stack-sm { display: flex; flex-direction: column; gap: 8px; }
+button { font: inherit; cursor: pointer; border: 0; }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn { background: var(--accent); color: var(--surface); padding: 13px 20px; border-radius: 10px; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.danger { background: var(--no); color: var(--surface); }
+.btn:disabled { opacity: .45; cursor: default; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; } .row .btn { flex: 1; min-width: 120px; }
+.who { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.who button { background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 22px 12px; border-radius: 14px; text-align: left; }
+.who button strong { display: block; font-family: var(--display); font-size: 1.7rem; font-weight: 400; } .who button span { font-size: .85rem; color: var(--muted); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; margin-bottom: 8px; }
+.bar-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: .85rem; color: var(--muted); }
+.track { height: 4px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; } .fill { height: 100%; background: var(--accent); transition: width .25s; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none } html { scroll-behavior: auto } }
+.q { display: flex; flex-direction: column; gap: 8px; } .q label, .q .qtext { font-weight: 500; }
+.qnum { color: var(--accent); font-weight: 700; margin-right: 4px; font-variant-numeric: tabular-nums; }
+textarea { width: 100%; min-height: 84px; resize: vertical; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+textarea.long { min-height: 240px; }
+input[type="password"], input[type="text"] { width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; } .field label { font-weight: 500; }
+.scale { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.scale button { background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 10px 0; border-radius: 8px; font-variant-numeric: tabular-nums; font-weight: 600; min-width: 0; }
+.scale button[aria-pressed="true"] { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.scale-ends { display: flex; justify-content: space-between; font-size: .75rem; color: var(--muted); }
+.ymn { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.ymn-row { display: flex; flex-direction: column; gap: 8px; padding-block: 14px; border-bottom: 1px solid var(--line); }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.seg button { background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 9px 0; border-radius: 8px; font-weight: 600; font-size: .9rem; }
+.seg button[data-v="yes"][aria-pressed="true"] { background: var(--yes-soft); border-color: var(--yes); color: var(--yes); }
+.seg button[data-v="maybe"][aria-pressed="true"] { background: var(--maybe-soft); border-color: var(--maybe); color: var(--maybe); }
+.seg button[data-v="no"][aria-pressed="true"] { background: var(--no-soft); border-color: var(--no); color: var(--no); }
+.note { background: var(--accent-soft); border-radius: 12px; padding: 14px 16px; font-size: .95rem; }
+.letter { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.letter p { font-family: var(--display); font-size: 1.25rem; line-height: 1.35; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.card.locked { opacity: .6; }
+.status { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pill { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.pill b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.2rem; } .pill .st { font-size: .85rem; } .st.done { color: var(--yes); font-weight: 600; }
+.saved { font-size: .8rem; color: var(--muted); }
+.cmp-q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.ans { display: flex; flex-direction: column; gap: 2px; } .ans .nm { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+.ans .tx { white-space: pre-wrap; overflow-wrap: anywhere; } .ans .tx.empty { color: var(--muted); font-style: italic; }
+.flag { font-size: .85rem; color: var(--no); font-weight: 600; } .err { color: var(--no); font-weight: 600; font-size: .95rem; }
+.verdict { display: inline-block; align-self: flex-start; font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; }
+.v-yes { background: var(--yes-soft); color: var(--yes); } .v-talk { background: var(--maybe-soft); color: var(--maybe); } .v-no { background: var(--no-soft); color: var(--no); }
+.pair { display: flex; gap: 16px; font-size: .9rem; flex-wrap: wrap; }
+.confirm { border: 1px solid var(--no); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.decide { display: grid; gap: 8px; }
+.decide button { background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 12px; border-radius: 10px; text-align: left; font-weight: 500; }
+.decide button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><p class="muted">Loading…</p></div>
+<script src="config.js"></script>
+<script>
+"use strict";
+const CFG = Object.assign({ supabaseUrl: "", supabaseAnonKey: "", pollMs: 30000 }, window.BWISI_CONFIG || {});
+const PEOPLE = { matt: "Matt", louise: "Louise" };
+const STAGES = {
+  1: { title: "Deciding", blurb: "Whether this is something you both genuinely want.", sections: [
+    { id: "why", title: "Why, or why not", qs: [
+      ["why1", "In your own words: why do you want this? Or why don't you?"],
+      ["why2", "How much do you want this?", "scale"],
+      ["why3", "If your partner had never brought this up, would you have wanted it on your own?"],
+      ["why4", "Is any part of you agreeing because you're worried about what happens to us if you say no?"],
+      ["why5", "If your partner's honest answer is no, what happens to us? Answer this whether you're the one asking or the one being asked."],
+      ["why6", "What would you want in return, or what's something you'd want to try that's your idea?"] ]},
+    { id: "feel", title: "Feelings and fears", qs: [
+      ["f1", "What's the worst realistic way this could go for you?"],
+      ["f2", "What would be hardest for you to see or hear, either with her or during the weeks of looking for her?"],
+      ["f3", "What does your jealousy look like when it shows up, and what helps most when you feel insecure?"],
+      ["f4", "Is there anyone in our lives (friends, coworkers, exes) you would not want this to be?"],
+      ["f5", "What would make you want to call it off partway through, and how would you tell me?"] ]},
+    { id: "ymn", title: "Yes / Maybe / No", type: "ymn",
+      intro: "A No from either of you takes it off the table. A Maybe means only after you've talked it through.",
+      qs: [
+      ["a1", "Flirting and kissing while all three are together"],
+      ["a2", "Matt kissing her"], ["a3", "Louise kissing her"],
+      ["a4", "Matt being physical with her (touching, oral)"], ["a5", "Louise being physical with her (touching, oral)"],
+      ["a6", "Matt having intercourse with her"], ["a7", "Louise using toys with her"],
+      ["a8", "Louise being the main focus"], ["a9", "Matt being the main focus"], ["a10", "Her being the main focus"],
+      ["a11", "One of us only watching for part of it"],
+      ["a12", "Matt having time alone with her"], ["a13", "Louise having time alone with her"],
+      ["a14", "Alcohol involved"], ["a15", "Photos or video of any kind"] ],
+      extra: ["aOther", "Anything else, with your Yes / Maybe / No"] } ]},
+  2: { title: "Planning", blurb: "Only once you're both a genuine yes.", sections: [
+    { id: "rules", title: "Rules and limits", qs: [
+      ["r1", "Where should it happen (our place, hers, a hotel), and can she stay the night?"],
+      ["r2", "Once only, or could she become a repeat partner? A stranger, or is someone we know okay?"],
+      ["r3", "Who has the final say on who she is?"],
+      ["r4", "Can either of us message her one-on-one, before or after? What does the other get to see?"],
+      ["r5", "Does anything change about how we act as a couple in front of her (affection, pet names, our bed)?"],
+      ["r6", "Who, if anyone, are we allowed to tell?"],
+      ["r7", "What, if it happened, would mean we never do this again?"] ]},
+    { id: "safe", title: "Safer sex and health", qs: [
+      ["s1", "Condoms with her: always, for everything, or only for some things?"],
+      ["s2", "Recent STI tests for all three before anything happens? How recent, and who asks her?"],
+      ["s3", "Birth control: is our current method enough, or do we want a backup?"] ]},
+    { id: "find", title: "Finding her", qs: [
+      ["n1", "Who takes the lead in finding and messaging her, and how does the other stay in the loop?"],
+      ["n2", "Where are you comfortable looking: apps, social events, mutual friends?"],
+      ["n3", "What matters to you in her, what's a dealbreaker, and does she need to be into both of us?"],
+      ["n4", "How many meetups before anything physical, and what do we tell her upfront about our rules?"],
+      ["n5", "What if one of us likes her and the other doesn't?"],
+      ["n6", "During the weeks of looking, what do you need from me? (check-ins, seeing the messages, a pause rule)"] ]},
+    { id: "picture", title: "Picture it",
+      intro: "Describe it the way you'd want it, or the most you'd be comfortable with.",
+      qs: [
+      ["p1", "Who should take the lead, and how? (Matt, Louise, her, or it shifts as things go)"],
+      ["p2", "What do you most want to experience or feel, and what would help you feel relaxed and safe?"],
+      ["p3", "Write a scenario of how you'd like it to go, from meeting her to the end of the night: where you are, how it starts, what happens, and how it ends.", "long"] ]},
+    { id: "moment", title: "In the moment",
+      intro: "Agree now: either of you can stop at any time, for any reason, and the other doesn't argue or sulk about it later.",
+      qs: [
+      ["m1", "What word or signal means \"pause and check in with me\"? And what means \"we're stopping, no questions\"?"],
+      ["m2", "If one of us stops it, what does the other do right then, and what do we say to her?"],
+      ["m3", "How do you want to be checked on during it, and what would reassure you while it's happening?"] ]},
+    { id: "after", title: "After", qs: [
+      ["t1", "Right after she leaves, what do you want: closeness, space, talking, sleep?"],
+      ["t2", "What would you need to hear from your partner afterward to feel secure?"],
+      ["t3", "If one of us had a great time and the other didn't, how do we handle that? And how will we decide whether to do it again?"] ]} ]},
+};
+
+const NET_MSG = "Couldn't reach the server. Your draft is safe on this phone; try again in a moment.";
+const S = { me: null, view: "loading", stage: 1, step: 0, answers: {}, saveTimer: null, savedMsg: "", confirm: null, err: "",
+  rows: [], netErr: "", pw: {}, reading: null, older: [], pwMode: null, choice: null, busy: false, fieldErr: {} };
+const app = document.getElementById("app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const other = () => S.me === "matt" ? "louise" : "matt";
+const $ = id => document.getElementById(id);
+function lsGet(k) { try { return localStorage.getItem(k) } catch { return null } }
+function lsSet(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); return true } catch { return false } }
+function lsJSON(k) { try { return JSON.parse(lsGet(k) || "null") } catch { return null } }
+const draftKey = (st, p) => `bwisi:draft:${st}:${p}`;
+const savedKey = (st, p) => `bwisi:saved:${st}:${p}`;
+const pwKey = (st, p) => `${st}:${p}`;
+const shortDate = d => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+const longDate = d => new Date(d).toLocaleDateString(undefined, { month: "long", day: "numeric" });
+const wrongPw = p => `That password didn't open ${PEOPLE[p]}'s answers.`;
+const toTop = () => scrollTo(0, 0);
+
+/* ---------- Crypto: PBKDF2 (SHA-256, 200k) -> AES-GCM 256. Blob = base64url(salt16 + iv12 + ciphertext). ---------- */
+const te = new TextEncoder(), td = new TextDecoder();
+const hex = buf => Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, "0")).join("");
+const sha256hex = async s => hex(await crypto.subtle.digest("SHA-256", te.encode(s)));
+const rowKey = (p, st, pw) => sha256hex(`${p}:${st}:${pw}`);
+function b64u(bytes) {
+  let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function unb64u(str) {
+  let s = str.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+  const bin = atob(s), out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out;
+}
+async function pipeBytes(bytes, stream) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+async function deriveKey(pw, salt) {
+  const base = await crypto.subtle.importKey("raw", te.encode(pw), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 200000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+// Plaintext = flag byte (1 = deflate-raw, 0 = raw) + body, so the flag is sealed too.
+async function seal(obj, pw) {
+  let body = te.encode(JSON.stringify(obj)), flag = 0;
+  if (typeof CompressionStream === "function") { try { body = await pipeBytes(body, new CompressionStream("deflate-raw")); flag = 1; } catch { body = te.encode(JSON.stringify(obj)); } }
+  const plain = new Uint8Array(body.length + 1); plain[0] = flag; plain.set(body, 1);
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await deriveKey(pw, salt), plain));
+  const out = new Uint8Array(28 + ct.length); out.set(salt, 0); out.set(iv, 16); out.set(ct, 28);
+  return b64u(out);
+}
+async function unseal(blob, pw) {
+  const all = unb64u(blob), salt = all.slice(0, 16), iv = all.slice(16, 28), ct = all.slice(28);
+  const plain = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv }, await deriveKey(pw, salt), ct));
+  const body = plain.subarray(1);
+  return JSON.parse(td.decode(plain[0] === 1 ? await pipeBytes(body, new DecompressionStream("deflate-raw")) : body));
+}
+
+/* ---------- Supabase REST (plain fetch) ---------- */
+class NetError extends Error {}
+async function api(path, opts = {}) {
+  const k = CFG.supabaseAnonKey, headers = { apikey: k, "Content-Type": "application/json", Accept: "application/json" };
+  if (k.split(".").length === 3) headers.Authorization = `Bearer ${k}`; // legacy anon JWT; publishable keys go in apikey only
+  let res;
+  try { res = await fetch(`${CFG.supabaseUrl.replace(/\/+$/, "")}/rest/v1/${path}`, { ...opts, headers, cache: "no-store" }); }
+  catch { throw new NetError(); }
+  if (!res.ok) { const e = new Error("http " + res.status); e.status = res.status; throw e; }
+  const t = await res.text(); return t ? JSON.parse(t) : null;
+}
+const rpc = (fn, args) => api(`rpc/${fn}`, { method: "POST", body: JSON.stringify(args) });
+function explain(e) {
+  if (e instanceof NetError || !e || !e.status || e.status >= 500) return NET_MSG;
+  return "The server turned this request down. Check that supabase/schema.sql has been run in your Supabase project, then try again.";
+}
+
+const byNewest = (a, b) => String(b.updated_at).localeCompare(String(a.updated_at));
+const cur = (st, p) => S.rows.find(r => r.name === p && r.stage === st) || null;
+const bothSaved = st => !!(cur(st, "matt") && cur(st, "louise"));
+const bothRead = st => !!(cur(st, "matt")?.read_at && cur(st, "louise")?.read_at);
+const decisionOf = p => cur(1, p)?.decision || null;
+const bothYes = () => decisionOf("matt") === "yes" && decisionOf("louise") === "yes";
+
+async function refresh() {
+  if (!configured()) return;
+  try {
+    const rows = (await api("entries?select=name,stage,decision,read_at,updated_at&order=updated_at.desc")) || [];
+    rows.sort(byNewest);
+    const changed = JSON.stringify(rows) !== JSON.stringify(S.rows), hadErr = !!S.netErr;
+    S.rows = rows; S.netErr = "";
+    if ((changed || hadErr) && (S.view === "home" || S.view === "compare")) render();
+  } catch (e) {
+    const had = S.netErr; S.netErr = explain(e);
+    if (had !== S.netErr && S.view === "home") render();
+  }
+}
+// Fetch every version for one person and stage, newest first, and open the newest with this password.
+async function unlock(st, p, pw) {
+  const vs = (await api(`entries?select=updated_at,blob&name=eq.${p}&stage=eq.${st}&order=updated_at.desc`)) || [];
+  if (!vs.length) return { missing: true };
+  vs.sort(byNewest);
+  let data; try { data = await unseal(vs[0].blob, pw); } catch { return null; }
+  const key = await rowKey(p, st, pw);
+  S.older = S.older.filter(o => !(o.st === st && o.p === p));
+  if (vs.length > 1) S.older.push({ st, p, key, n: vs.length - 1 });
+  return { data, key, updated_at: vs[0].updated_at };
+}
+
+const configured = () => !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
+
+function init() {
+  if (!configured()) { S.view = "setup"; return render(); }
+  const saved = lsGet("bwisi:me");
+  if (saved && PEOPLE[saved]) { S.me = saved; S.view = "home"; } else S.view = "who";
+  render(); refresh();
+  setInterval(() => { if (document.visibilityState === "visible") refresh(); }, CFG.pollMs);
+  addEventListener("focus", refresh);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+}
+
+/* ---------- Drafts ---------- */
+function loadDraft(stage) {
+  const d = lsJSON(draftKey(stage, S.me));
+  S.answers = (d && d.answers) || {}; S.step = Math.min((d && d.step) || 0, STAGES[stage].sections.length - 1);
+}
+function queueSave() { clearTimeout(S.saveTimer); S.savedMsg = "Saving…"; updateSaved(); S.saveTimer = setTimeout(saveDraft, 700); }
+function saveDraft() {
+  clearTimeout(S.saveTimer);
+  const ok = lsSet(draftKey(S.stage, S.me), JSON.stringify({ answers: S.answers, step: S.step, updated: new Date().toISOString() }));
+  S.savedMsg = ok ? "Saved on this phone" : "This phone isn't keeping a draft. Keep this tab open until you submit.";
+  updateSaved();
+}
+function updateSaved() { const el = $("saved"); if (el) el.textContent = S.savedMsg; }
+function countAnswered(stage) {
+  let n = 0, total = 0;
+  for (const s of STAGES[stage].sections) for (const [id] of s.qs) { total++; if (S.answers[id] !== undefined && S.answers[id] !== "") n++; }
+  return { n, total };
+}
+function pick(p) { S.me = p; lsSet("bwisi:me", p); S.view = "home"; render(); refresh(); }
+function go(view) { S.err = ""; S.confirm = null; S.fieldErr = {}; S.view = view; render(); toTop(); }
+
+/* ---------- Render ---------- */
+function render() {
+  ({ loading: () => {}, setup: renderSetup, who: renderWho, home: renderHome, form: renderForm, review: renderReview, password: renderPassword,
+     saved: renderSaved, unlock: renderUnlock, choose: renderChoose, together: renderTogether, compare: renderCompare, decide: renderDecide })[S.view]();
+}
+const confirmHTML = () => S.confirm ? `<div class="confirm" role="alertdialog" aria-label="Confirm"><p>${esc(S.confirm.text)}</p><div class="row"><button class="btn danger" id="c-yes">${esc(S.confirm.label)}</button><button class="btn ghost" id="c-no">Cancel</button></div></div>` : "";
+function bindConfirm(after) {
+  if ($("c-yes")) $("c-yes").onclick = async () => { const r = S.confirm.run; S.confirm = null; S.err = ""; try { await r(); } catch (e) { S.err = explain(e); } render(); if (after) after(); };
+  if ($("c-no")) $("c-no").onclick = () => { S.confirm = null; render(); };
+}
+const errHTML = (msg, id = "") => msg ? `<p class="err" role="alert"${id ? ` id="${id}"` : ""}>${esc(msg)}</p>` : "";
+function olderHTML(list) {
+  return list.map(o => `<div class="note stack-sm"><p>There's an older saved version of ${o.p === S.me ? "your" : `${PEOPLE[o.p]}'s`} Stage ${o.st} answers, under a different password. This page uses the newest one.</p>
+    <div class="row"><button class="btn ghost" data-del-older="${S.older.indexOf(o)}">Delete older versions</button><button class="btn ghost" data-keep-older="${S.older.indexOf(o)}">Not now</button></div></div>`).join("");
+}
+function bindOlder() {
+  app.querySelectorAll("[data-keep-older]").forEach(b => b.onclick = () => { S.older.splice(+b.dataset.keepOlder, 1); render(); });
+  app.querySelectorAll("[data-del-older]").forEach(b => b.onclick = async () => {
+    const o = S.older[+b.dataset.delOlder]; if (!o) return; b.disabled = true; S.err = "";
+    try { await rpc("bwisi_delete_older", { p_key: o.key }); S.older = S.older.filter(x => x !== o); await refresh(); }
+    catch (e) { S.err = explain(e); }
+    render();
+  });
+}
+
+function renderSetup() {
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">Almost ready</span><h1>Before We Invite Someone In</h1></div>
+    <div class="note stack-sm" id="setup"><p><b>This page isn't connected yet.</b></p>
+      <p>Open <code>config.js</code> in this repository and paste your Supabase project URL and anon key between the quotes. The README walks through it step by step. Then reload this page.</p></div></div>`;
+}
+
+function renderWho() {
+  app.innerHTML = `<div class="stack-lg">
+    <div class="stack"><span class="eyebrow">A questionnaire for couples</span><h1>Before We Invite Someone In</h1>
+      <p class="muted">Each of you answers on your own phone. Your answers are locked with a password only you know. Then you read them together.</p></div>
+    <div class="stack"><p class="qtext"><b>Who's filling this out?</b></p>
+      <div class="who"><button id="pick-matt"><strong>Matt</strong><span>Start or continue</span></button>
+        <button id="pick-louise"><strong>Louise</strong><span>Start or continue</span></button></div></div>
+  </div>`;
+  $("pick-matt").onclick = () => pick("matt");
+  $("pick-louise").onclick = () => pick("louise");
+}
+
+function stageCard(st) {
+  const me = S.me, them = other(), mine = cur(st, me), theirs = cur(st, them);
+  const stat = p => { const r = cur(st, p); return r ? `<span class="st done">Saved ${esc(shortDate(r.updated_at))}</span>` : `<span class="st muted">Not yet</span>`; };
+  let locked = false, body = "";
+  if (st === 2 && !bothRead(1)) { locked = true; body = `<p class="muted small">Opens after you've both read Stage 1 and both said you're a genuine yes.</p>`; }
+  else if (st === 2 && !bothYes()) {
+    locked = true; const d = decisionOf;
+    const line = (!d("matt") || !d("louise")) ? "Opens once you've both answered the question at the end of Stage 1." :
+      (d("matt") === "no" || d("louise") === "no") ? "One of you said no. Stage 2 stays closed, and that's a complete answer." :
+      "One of you isn't sure yet. Take the time you need.";
+    body = `<p class="muted small" id="s2-lock">${line}</p>`;
+  } else {
+    const draft = lsJSON(draftKey(st, me)), hasDraft = draft && Object.keys(draft.answers || {}).length;
+    const parts = [];
+    if (mine) parts.push(`<p class="small">Your answers: saved ${esc(shortDate(mine.updated_at))}. They're sealed with your password.</p>`);
+    if (mine && !theirs) parts.push(`<p class="muted small">You can read Stage ${st} together once ${PEOPLE[them]} saves too.</p>`);
+    if (!mine && theirs) parts.push(`<p class="muted small">${PEOPLE[them]} has saved. You can read together once you save yours.</p>`);
+    if (st === 1 && bothRead(1)) {
+      const dm = decisionOf(me), dt = decisionOf(them), lab = { yes: "Yes", unsure: "Not sure yet", no: "No" };
+      parts.push(`<div class="stack-sm"><p class="small"><b>Where are you?</b> You: ${dm ? esc(lab[dm]) : "not answered yet"}. ${PEOPLE[them]}: ${dt ? esc(lab[dt]) : "not answered yet"}.</p>
+        <div><button class="btn ghost" data-decide-open="1">${dm ? "Change my answer" : "Answer for yourself"}</button></div></div>`);
+    }
+    const btns = [];
+    if (bothSaved(st)) btns.push(`<button class="btn" data-read="${st}">Read Stage ${st} together</button>`);
+    if (mine) btns.push(`<button class="btn ghost" data-edit="${st}">Edit my answers</button>`);
+    else btns.push(`<button class="btn" data-start="${st}">${hasDraft ? "Continue" : "Start"} Stage ${st}</button>`);
+    body = parts.join("") + `<div class="row">${btns.join("")}</div>`;
+  }
+  return `<div class="card ${locked ? "locked" : ""}" data-card="${st}"><div class="stack-sm"><span class="eyebrow">Stage ${st}</span><h3>${STAGES[st].title}</h3><p class="muted small">${STAGES[st].blurb}</p></div>
+    ${locked ? "" : `<div class="status"><div class="pill" data-p="matt"><b>Matt</b>${stat("matt")}</div><div class="pill" data-p="louise"><b>Louise</b>${stat("louise")}</div></div>`}
+    ${body}</div>`;
+}
+
+function renderHome() {
+  app.innerHTML = `<div class="stack-lg">
+    <div class="stack"><span class="eyebrow">Hi, ${PEOPLE[S.me]}</span><h1>Before We Invite Someone In</h1></div>
+    <div class="letter"><span class="eyebrow">Before you begin</span>
+      <p>Usually one partner brings an idea like this up, and it may be something they want very much. If you're the other partner, it's normal to feel nervous, uncomfortable or unsure. Say so here.</p>
+      <p>Sharing a desire like this takes trust, and that trust runs both ways. Each of you can bring your wants, desires, boundaries, non-negotiables and "no"s to the other without judgement or resentment. The same goes for your feelings and the reasons behind them. Whatever they are, they won't be judged, and explaining them is how you come to understand each other better.</p>
+      <p>Answer honestly, not with what you think your partner wants to hear. Take your time and dig deep. If an answer might make your partner uncomfortable, write it anyway. That includes if your honest answer is that you don't want this.</p>
+      <p>The goal is to know each other fully, whatever you decide, and for both of you to feel safe being completely yourselves.</p></div>
+    <div class="stack-sm"><p class="qtext"><b>How it works</b></p>
+      <p class="small">Two stages. Stage 1 is about whether you both want this. You each answer alone, then read both sets of answers together and each say where you stand. Stage 2, the planning, only opens if you both say yes. When you submit, you choose a password, and your answers are locked with it before they leave your phone. Nobody can read them without it: not your partner, and not whoever runs this site. To read together, you each type your own password on one phone.</p>
+      <p class="muted small">"Not sure" and "no" are complete answers. A polite answer you don't mean is the only wrong one.</p></div>
+    ${S.netErr ? errHTML(S.netErr, "net-err") : ""}
+    ${stageCard(1)}${stageCard(2)}
+    ${errHTML(S.err)}
+    <div><button class="btn ghost" id="switch">I'm not ${PEOPLE[S.me]}</button></div>
+  </div>`;
+  app.querySelectorAll("[data-start]").forEach(b => b.onclick = () => { S.stage = +b.dataset.start; loadDraft(S.stage); S.savedMsg = ""; go("form"); });
+  app.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { S.stage = +b.dataset.edit; go("unlock"); });
+  app.querySelectorAll("[data-read]").forEach(b => b.onclick = () => { S.stage = +b.dataset.read; go("together"); });
+  app.querySelectorAll("[data-decide-open]").forEach(b => b.onclick = () => go("decide"));
+  $("switch").onclick = () => { lsSet("bwisi:me", null); S.me = null; S.answers = {}; S.pw = {}; S.reading = null; S.older = []; go("who"); };
+}
+
+function qHTML(id, text, kind, num) {
+  const v = S.answers[id];
+  if (kind === "scale") {
+    const btns = Array.from({ length: 10 }, (_, i) => `<button type="button" data-scale="${id}" data-n="${i + 1}" aria-pressed="${v === i + 1}">${i + 1}</button>`).join("");
+    return `<div class="q"><span class="qtext"><span class="qnum">${num}.</span>${esc(text)}</span><div class="scale" role="group" aria-label="${esc(text)}">${btns}</div>
+      <div class="scale-ends"><span>Not at all</span><span>Very much</span></div></div>`;
+  }
+  return `<div class="q"><label for="q-${id}"><span class="qnum">${num}.</span>${esc(text)}</label><textarea id="q-${id}" data-q="${id}"${kind === "long" ? ' class="long"' : ""}>${esc(v || "")}</textarea></div>`;
+}
+
+function renderForm() {
+  const secs = STAGES[S.stage].sections, sec = secs[S.step];
+  const pct = Math.round(((S.step + 1) / secs.length) * 100), last = S.step === secs.length - 1;
+  let body;
+  if (sec.type === "ymn") {
+    body = `<div class="ymn">${sec.qs.map(([id, t]) => `<div class="ymn-row"><span>${esc(t)}</span><div class="seg" role="group" aria-label="${esc(t)}">
+      ${["yes", "maybe", "no"].map(o => `<button type="button" data-ymn="${id}" data-v="${o}" aria-pressed="${S.answers[id] === o}">${o[0].toUpperCase() + o.slice(1)}</button>`).join("")}</div></div>`).join("")}</div>
+      ${qHTML(sec.extra[0], sec.extra[1], "text", "+")}`;
+  } else body = sec.qs.map(([id, t, k], i) => qHTML(id, t, k || "text", i + 1)).join("");
+  const older = S.older.filter(o => o.st === S.stage && o.p === S.me);
+  app.innerHTML = `<div class="bar"><div class="bar-row"><span>${PEOPLE[S.me]} · Stage ${S.stage} · ${S.step + 1} of ${secs.length}</span><span id="saved" class="saved" aria-live="polite">${esc(S.savedMsg)}</span></div>
+      <div class="track"><div class="fill" style="width:${pct}%"></div></div></div>
+    <div class="stack-lg">${olderHTML(older)}${errHTML(S.err)}<div class="stack"><h2>${esc(sec.title)}</h2>${sec.intro ? `<p class="muted">${esc(sec.intro)}</p>` : ""}</div>${body}
+      <div class="row"><button class="btn ghost" id="back">${S.step === 0 ? "Home" : "Back"}</button><button class="btn" id="next">${last ? "Review and submit" : "Next"}</button></div>
+      ${S.step === 0 ? (S.confirm ? confirmHTML() : `<div><button class="btn ghost" id="clear">Clear my Stage ${S.stage} answers</button></div>`) : ""}
+    </div>`;
+  app.querySelectorAll("textarea[data-q]").forEach(t => t.addEventListener("input", () => { S.answers[t.dataset.q] = t.value; queueSave(); }));
+  const press = (b, attr) => { S.answers[b.dataset[attr]] = attr === "scale" ? +b.dataset.n : b.dataset.v; queueSave(); b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); };
+  app.querySelectorAll("[data-scale]").forEach(b => b.onclick = () => press(b, "scale"));
+  app.querySelectorAll("[data-ymn]").forEach(b => b.onclick = () => press(b, "ymn"));
+  $("back").onclick = () => { if (S.step === 0) { saveDraft(); go("home"); } else { S.step--; saveDraft(); go("form"); } };
+  $("next").onclick = () => { if (last) { saveDraft(); go("review"); } else { S.step++; saveDraft(); go("form"); } };
+  if ($("clear")) $("clear").onclick = () => { S.confirm = { text: `Clear every Stage ${S.stage} answer in your draft on this phone? Answers you've already saved stay saved.`, label: "Clear mine",
+    run: async () => { S.answers = {}; S.step = 0; lsSet(draftKey(S.stage, S.me), null); S.savedMsg = ""; } }; render(); };
+  bindConfirm();
+  bindOlder();
+}
+
+function renderReview() {
+  const { n, total } = countAnswered(S.stage), blanks = total - n;
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">${PEOPLE[S.me]} · Stage ${S.stage}</span><h2>Ready to submit?</h2>
+    <p>You answered ${n} of ${total} questions.${blanks ? ` ${blanks} are blank, which is fine if that's your answer.` : ""}</p>
+    <p class="muted">"Not sure" and "no" are complete answers here too.</p>
+    <p class="muted">Next you'll choose a password. Your answers are locked with it on this phone before they're sent. ${PEOPLE[other()]} can only read them when you type it in together. You can edit them later with the same password.</p></div>
+    <div class="row"><button class="btn ghost" id="back">Keep editing</button><button class="btn" id="submit">Submit my answers</button></div></div>`;
+  $("back").onclick = () => go("form");
+  $("submit").onclick = () => { saveDraft(); S.pwMode = null; go("password"); };
+}
+
+function renderPassword() {
+  const k = pwKey(S.stage, S.me), known = S.pw[k], same = known && S.pwMode !== "new", before = lsJSON(savedKey(S.stage, S.me));
+  const body = same ? `<p>You opened these answers with your password. Save them with the same one, or choose a new one.</p>
+      ${errHTML(S.err)}
+      <div class="row"><button class="btn" id="save-same"${S.busy ? " disabled" : ""}>${S.busy ? "Locking…" : "Save with the same password"}</button></div>
+      <div class="row"><button class="btn ghost" id="pw-new">Use a new password instead</button><button class="btn ghost" id="back">Keep editing</button></div>`
+    : `<p>Choose a password for your Stage ${S.stage} answers. At least 4 characters. You'll need it to edit them and to read them together.</p>
+      ${before && !known ? `<p class="muted small">To replace the answers you saved before, use the same password as last time. A different password saves a new version.</p>` : ""}
+      <form id="pwform" class="stack" novalidate>
+        <input type="text" name="username" value="${esc(S.me)}-stage-${S.stage}" autocomplete="username" hidden>
+        <div class="field"><label for="pw1">Password</label><input type="password" id="pw1" autocomplete="new-password" minlength="4" required></div>
+        <div class="field"><label for="pw2">Type it again</label><input type="password" id="pw2" autocomplete="new-password" minlength="4" required></div>
+        <p class="muted small">If you forget it, your answers can only be rebuilt from the draft on this phone.</p>
+        ${errHTML(S.err)}
+        <div class="row"><button type="button" class="btn ghost" id="back">Keep editing</button><button type="submit" class="btn" id="save-new"${S.busy ? " disabled" : ""}>${S.busy ? "Locking…" : "Lock and save"}</button></div>
+      </form>`;
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">${PEOPLE[S.me]} · Stage ${S.stage}</span><h2>Lock your answers</h2>${body}</div></div>`;
+  $("back").onclick = () => go("form");
+  if ($("pw-new")) $("pw-new").onclick = () => { S.pwMode = "new"; S.err = ""; render(); };
+  if ($("save-same")) $("save-same").onclick = () => doSave(known);
+  if ($("pwform")) $("pwform").onsubmit = ev => {
+    ev.preventDefault();
+    const a = $("pw1").value, b = $("pw2").value;
+    if (a.length < 4) { S.err = "That password is too short. Use at least 4 characters."; return render(); }
+    if (a !== b) { S.err = "The two passwords don't match. Type them again."; return render(); }
+    doSave(a);
+  };
+}
+async function doSave(pw) {
+  if (S.busy) return;
+  S.busy = true; S.err = ""; render();
+  try {
+    saveDraft();
+    const key = await rowKey(S.me, S.stage, pw);
+    const blob = await seal({ answers: S.answers, submittedAt: new Date().toISOString() }, pw);
+    const at = await rpc("bwisi_save", { p_key: key, p_name: S.me, p_stage: S.stage, p_blob: blob });
+    S.pw[pwKey(S.stage, S.me)] = pw; S.pwMode = null;
+    lsSet(savedKey(S.stage, S.me), JSON.stringify({ key, at }));
+    S.busy = false; await refresh(); go("saved");
+  } catch (e) { S.busy = false; S.err = explain(e); render(); }
+}
+
+function renderSaved() {
+  const them = other(), theirs = cur(S.stage, them);
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">${PEOPLE[S.me]} · Stage ${S.stage}</span><h2>Your answers are in</h2>
+    <p id="saved-msg">Saved. Your answers are sealed with your password.</p>
+    <p class="muted">${theirs ? `${PEOPLE[them]} has saved too. You can read Stage ${S.stage} together from the home screen.` : `Once ${PEOPLE[them]} saves too, you can read Stage ${S.stage} together from the home screen.`} You'll each type your own password then.</p></div>
+    <div class="row"><button class="btn" id="home">Home</button></div></div>`;
+  $("home").onclick = () => go("home");
+}
+
+function pwField(id, label, autocomplete = "current-password") {
+  return `<div class="field"><label for="${id}">${esc(label)}</label><input type="password" id="${id}" autocomplete="${autocomplete}" required>${errHTML(S.fieldErr[id], `${id}-err`)}</div>`;
+}
+function renderUnlock() {
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">${PEOPLE[S.me]} · Stage ${S.stage}</span><h2>Edit my answers</h2>
+    <p>Type the password you saved these answers with.</p>
+    <form id="unlockform" class="stack" novalidate>${pwField("pw-own", "Your password")}${errHTML(S.err)}
+      <div class="row"><button type="button" class="btn ghost" id="home">Home</button><button type="submit" class="btn" id="open"${S.busy ? " disabled" : ""}>${S.busy ? "Opening…" : "Open my answers"}</button></div></form></div></div>`;
+  $("home").onclick = () => go("home");
+  $("unlockform").onsubmit = async ev => {
+    ev.preventDefault(); if (S.busy) return;
+    const pw = $("pw-own").value; S.busy = true; S.err = ""; S.fieldErr = {}; render();
+    try {
+      const r = await unlock(S.stage, S.me, pw);
+      S.busy = false;
+      if (!r) { S.fieldErr["pw-own"] = wrongPw(S.me); return render(); }
+      if (r.missing) { S.err = `There are no saved Stage ${S.stage} answers for you yet.`; return render(); }
+      S.pw[pwKey(S.stage, S.me)] = pw;
+      const saved = r.data.answers || {}, draft = lsJSON(draftKey(S.stage, S.me));
+      const submittedAt = r.data.submittedAt || r.updated_at;
+      if (draft && draft.updated && draft.updated > submittedAt && JSON.stringify(draft.answers || {}) !== JSON.stringify(saved)) {
+        S.choice = { saved, savedAt: submittedAt, draft }; return go("choose");
+      }
+      S.answers = { ...saved }; S.step = Math.min((draft && draft.step) || 0, STAGES[S.stage].sections.length - 1);
+      saveDraft(); S.savedMsg = ""; go("form");
+    } catch (e) { S.busy = false; S.err = explain(e); render(); }
+  };
+  if ($("pw-own")) $("pw-own").focus();
+}
+function renderChoose() {
+  const c = S.choice;
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">${PEOPLE[S.me]} · Stage ${S.stage}</span><h2>Which version?</h2>
+    <p>This phone has a draft that's newer than your saved answers.</p>
+    <p class="muted small">Saved answers: ${esc(shortDate(c.savedAt))}. Draft on this phone: ${esc(shortDate(c.draft.updated))}.</p></div>
+    <div class="row"><button class="btn" id="use-draft">Use the draft</button><button class="btn ghost" id="use-saved">Use saved answers</button></div></div>`;
+  const finish = answers => { S.answers = { ...answers }; S.step = Math.min(c.draft.step || 0, STAGES[S.stage].sections.length - 1); S.choice = null; saveDraft(); S.savedMsg = ""; go("form"); };
+  $("use-draft").onclick = () => finish(c.draft.answers || {});
+  $("use-saved").onclick = () => finish(c.saved);
+}
+
+function renderTogether() {
+  const st = S.stage, order = [S.me, other()];
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">Stage ${st}</span><h2>Read Stage ${st} together</h2>
+    <p>Each of you types your own password. What opens here stays on this screen and is cleared when you go back home.</p>
+    <form id="togetherform" class="stack" novalidate>${order.map(p => pwField(`pw-${p}`, `${PEOPLE[p]}'s password`)).join("")}${errHTML(S.err)}
+      <div class="row"><button type="button" class="btn ghost" id="home">Home</button><button type="submit" class="btn" id="open"${S.busy ? " disabled" : ""}>${S.busy ? "Opening…" : "Open both"}</button></div></form></div></div>`;
+  $("home").onclick = () => go("home");
+  $("togetherform").onsubmit = async ev => {
+    ev.preventDefault(); if (S.busy) return;
+    const pws = { matt: $("pw-matt").value, louise: $("pw-louise").value };
+    S.busy = true; S.err = ""; S.fieldErr = {}; render();
+    try {
+      const res = {};
+      for (const p of ["matt", "louise"]) res[p] = await unlock(st, p, pws[p]);
+      S.busy = false;
+      for (const p of ["matt", "louise"]) {
+        if (!res[p]) S.fieldErr[`pw-${p}`] = wrongPw(p);
+        else if (res[p].missing) S.fieldErr[`pw-${p}`] = `${PEOPLE[p]} hasn't saved Stage ${st} answers yet.`;
+      }
+      if (Object.keys(S.fieldErr).length) return render();
+      S.pw[pwKey(st, S.me)] = pws[S.me];
+      S.reading = { st, A: { matt: res.matt.data.answers || {}, louise: res.louise.data.answers || {} }, keys: { matt: res.matt.key, louise: res.louise.key }, idx: 0, shown: {} };
+      try { await rpc("bwisi_mark_read", { p_key_matt: res.matt.key, p_key_louise: res.louise.key, p_stage: st }); } catch {}
+      await refresh(); go("compare");
+    } catch (e) { S.busy = false; S.err = explain(e); render(); }
+  };
+}
+
+function ansHTML(p, v) {
+  const empty = v === undefined || v === null || v === "";
+  return `<div class="ans" data-ans="${p}"><span class="nm">${PEOPLE[p]}</span><span class="tx ${empty ? "empty" : ""}">${empty ? "No answer" : esc(v)}</span></div>`;
+}
+const cap = x => x ? x[0].toUpperCase() + x.slice(1) : "No answer";
+const DECIDE = [["yes", "I'm a genuine yes. I want to plan this."], ["unsure", "I'm not sure yet. I need more time or more talking."], ["no", "I'm a no, and I'm trusting that's okay."]];
+const decideButtons = mine => `<div class="decide" role="group" aria-label="Where are you?">${DECIDE.map(([v, t]) => `<button data-decide="${v}" aria-pressed="${mine === v}">${t}</button>`).join("")}</div>`;
+function readDateLine() {
+  const ats = ["matt", "louise"].map(p => cur(1, p)?.read_at).filter(Boolean).sort();
+  return `<p class="muted small">${ats.length ? `You first read Stage 1 together on ${esc(longDate(ats[0]))}. ` : ""}Sleep on it before you answer this.</p>`;
+}
+const partnerLine = () => { const t = decisionOf(other()); return `<p class="small" id="partner-decision">${PEOPLE[other()]}: ${t ? `<b>${cap(t === "unsure" ? "not sure yet" : t)}</b>` : "hasn't answered yet"}. ${bothYes() ? "You're both a yes. Stage 2 is open on the home screen." : ""}</p>`; };
+async function setDecision(key, v) {
+  const ok = await rpc("bwisi_set_decision", { p_key: key, p_decision: v });
+  if (!ok) return false;
+  const r = cur(1, S.me); if (r) r.decision = v;
+  await refresh(); return true;
+}
+
+function renderCompare() {
+  const R = S.reading;
+  if (!R) { S.view = "home"; return render(); }
+  const st = R.st, A = R.A, secs = STAGES[st].sections, n = secs.length, isDecide = st === 1 && R.idx === n;
+  const order = [other(), S.me]; // partner's answer first, this phone's person second
+  let inner, title;
+  if (isDecide) {
+    title = "Where are you?";
+    inner = `<p>Having read all of it, answer for yourself, on your own phone. Don't discuss it first.</p>
+      ${readDateLine()}${decideButtons(decisionOf(S.me))}${partnerLine()}`;
+  } else {
+    const sec = secs[R.idx]; title = sec.title;
+    if (sec.type === "ymn") {
+      inner = sec.qs.map(([id, t]) => { const l = A.louise[id], m = A.matt[id];
+        const v = (l === "no" || m === "no") ? ["v-no", "Off the table"] : (l === "yes" && m === "yes") ? ["v-yes", "Agreed"] : ["v-talk", "Talk it through"];
+        return `<div class="cmp-q"><span>${esc(t)}</span><div class="pair">${order.map(p => `<span><b>${PEOPLE[p]}:</b> ${cap(A[p][id])}</span>`).join("")}</div><span class="verdict ${v[0]}">${v[1]}</span></div>`; }).join("")
+        + `<div class="cmp-q"><span>${esc(sec.extra[1])}</span>${order.map(p => ansHTML(p, A[p][sec.extra[0]])).join("")}</div>`;
+    } else if (sec.id === "picture") {
+      inner = `<p class="note">These are the most personal answers here. Read each one aloud to the other, one at a time, before opening the next.</p>` +
+        sec.qs.map(([id, t], i) => `<div class="cmp-q"><span class="qtext"><span class="qnum">${i + 1}.</span>${esc(t)}</span>
+          ${order.map(p => R.shown[id + p] ? ansHTML(p, A[p][id]) : `<div><button class="btn ghost" data-show="${id}${p}">Show ${PEOPLE[p]}'s answer</button></div>`).join("")}</div>`).join("");
+    } else {
+      inner = sec.qs.map(([id, t, k], i) => {
+        let flag = "";
+        if (k === "scale") { const l = A.louise[id], m = A.matt[id], blank = x => typeof x !== "number";
+          if (blank(l) || blank(m)) flag = `<span class="flag">One of you didn't answer this. Ask why.</span>`;
+          else if (Math.abs(l - m) >= 3) flag = `<span class="flag">Scores are ${Math.abs(l - m)} apart. Talk about this before anything else.</span>`; }
+        if (id === "why4") flag = `<span class="muted small">Anything other than a clear no here is worth stopping on.</span>`;
+        if (id === "why5") flag = `<span class="muted small">If these two answers don't match, this is the conversation to have before any other.</span>`;
+        return `<div class="cmp-q"><span class="qtext"><span class="qnum">${i + 1}.</span>${esc(t)}</span>${order.map(p => ansHTML(p, A[p][id])).join("")}${flag}</div>`; }).join("");
+    }
+  }
+  const total = st === 1 ? n + 1 : n, lastScreen = R.idx === total - 1;
+  const older = R.idx === 0 ? S.older.filter(o => o.st === st) : [];
+  app.innerHTML = `<div class="bar"><div class="bar-row"><span>Reading Stage ${st} together · ${R.idx + 1} of ${total}</span></div><div class="track"><div class="fill" style="width:${Math.round(((R.idx + 1) / total) * 100)}%"></div></div></div>
+    <div class="stack-lg">
+    ${R.idx === 0 ? `<p class="note"><b>Before you read:</b> one section per sitting is fine. Take turns reading your own answer aloud first. Read with curiosity, not defense; when an answer stings, ask about it before reacting, and thank each other for the hard ones.${st === 1 ? " Keep the lines you both said Yes to, talk through the Maybes, and drop every No without debate." : ""}</p>` : ""}
+    ${olderHTML(older)}
+    <h2>${esc(title)}</h2>${inner}
+    ${!lastScreen ? errHTML(S.err) : ""}
+    <div class="row"><button class="btn ghost" id="prev">${R.idx === 0 ? "Home" : "Back"}</button>${!lastScreen ? `<button class="btn" id="nextc">Next section</button>` : `<button class="btn" id="done">Home</button>`}</div>
+    ${lastScreen ? `<div class="stack-sm"><h3>Start Stage ${st} over</h3><p class="muted small">Clears both saved sets of answers${st === 1 ? ", both decisions, and anything saved for Stage 2" : ""}. Each of you keeps your own draft on your own phone.</p>
+      ${S.confirm ? confirmHTML() : `<div><button class="btn ghost" id="reset">Clear Stage ${st} for both</button></div>`}
+      ${errHTML(S.err)}</div>` : ""}
+    </div>`;
+  const close = () => { S.reading = null; go("home"); };
+  $("prev").onclick = () => { if (R.idx === 0) close(); else { R.idx--; go("compare"); } };
+  if ($("nextc")) $("nextc").onclick = () => { R.idx++; go("compare"); };
+  if ($("done")) $("done").onclick = close;
+  app.querySelectorAll("[data-show]").forEach(b => b.onclick = () => { R.shown[b.dataset.show] = true; render(); });
+  app.querySelectorAll("[data-decide]").forEach(b => b.onclick = async () => {
+    S.err = ""; try { if (!(await setDecision(R.keys[S.me], b.dataset.decide))) S.err = wrongPw(S.me); } catch (e) { S.err = explain(e); } render(); });
+  if ($("reset")) $("reset").onclick = () => { S.confirm = { text: `Clear Stage ${st} for both of you? This can't be undone.`, label: "Clear both", run: async () => {
+    await rpc("bwisi_reset", { p_key_matt: R.keys.matt, p_key_louise: R.keys.louise, p_stage: st });
+    for (const s of st === 1 ? [1, 2] : [st]) { lsSet(savedKey(s, S.me), null); delete S.pw[pwKey(s, S.me)]; }
+    S.older = []; S.reading = null; S.view = "home"; await refresh(); } }; render(); };
+  bindConfirm(toTop);
+  bindOlder();
+}
+
+function renderDecide() {
+  const known = S.pw[pwKey(1, S.me)];
+  app.innerHTML = `<div class="stack-lg"><div class="stack"><span class="eyebrow">${PEOPLE[S.me]} · Stage 1</span><h2>Where are you?</h2>
+    <p>Having read all of it, answer for yourself, on your own phone. Don't discuss it first.</p>${readDateLine()}</div>
+    ${known ? "" : `<div class="stack-sm">${pwField("pw-own", "Your password")}<p class="muted small">Your answer is saved on your own Stage 1 answers, so it needs your password.</p></div>`}
+    ${decideButtons(decisionOf(S.me))}
+    ${errHTML(S.err)}
+    ${partnerLine()}
+    <div class="row"><button class="btn ghost" id="home">Home</button></div></div>`;
+  $("home").onclick = () => go("home");
+  app.querySelectorAll("[data-decide]").forEach(b => b.onclick = async () => {
+    if (S.busy) return;
+    const pw = known || ($("pw-own") ? $("pw-own").value : "");
+    S.err = ""; S.fieldErr = {};
+    if (!pw) { S.fieldErr["pw-own"] = "Type your password first."; return render(); }
+    S.busy = true;
+    try {
+      let key;
+      if (known) key = await rowKey(S.me, 1, pw);
+      else { const r = await unlock(1, S.me, pw); if (!r || r.missing) { S.busy = false; S.fieldErr["pw-own"] = wrongPw(S.me); return render(); } key = r.key; S.pw[pwKey(1, S.me)] = pw; }
+      if (!(await setDecision(key, b.dataset.decide))) { delete S.pw[pwKey(1, S.me)]; S.fieldErr["pw-own"] = wrongPw(S.me); }
+    } catch (e) { S.err = explain(e); }
+    S.busy = false; render();
+  });
+}
+
+try { init(); } catch (e) { app.innerHTML = `<p class="err">Something went wrong loading this page. Reload to try again.</p>`; }
+</script>
+</body>
+</html>

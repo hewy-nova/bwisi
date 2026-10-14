@@ -1,0 +1,12 @@
+{
+  "name": "before-we-invite-someone-in",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A password-sealed two-person questionnaire. Static site for GitHub Pages, data in Supabase.",
+  "scripts": {
+    "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.1"
+  }
+}
